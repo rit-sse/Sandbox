@@ -22,7 +22,10 @@ set(CMAKE_CXX_FLAGS "-std=c++11" ${CMAKE_CXX_FLAGS})
 
 # Declare the executable target built from your sources
 add_executable(sandbox ${SANDBOX_SOURCES})
+add_executable(box box/box.cpp)
 
 # Link LIBS
 target_link_libraries(sandbox ${OpenCV_LIBS})
 target_link_libraries(sandbox ${freenect2_LIBRARIES})
+
+target_link_libraries(box ${OpenCV_LIBS})
