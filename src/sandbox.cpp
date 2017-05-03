@@ -89,6 +89,10 @@ int main() {
   // Start getting frames
   if (!dev->start()) return -1;
 
+  RedBox redBox;
+  redBox.draw();
+  waitKey();
+
   // Find box
   Box box;
   libfreenect2::Frame *color;
@@ -115,7 +119,9 @@ int main() {
 
   listener.release(frames);
 
-  RedBox redBox;
+  // Setup calibration
+  redBox.drawRedSquare(64);
+  waitKey();
 
   while(true) {
     if (!listener.waitForNewFrame(frames, 10*1000)) {
@@ -129,7 +135,7 @@ int main() {
 
     Mat boxImg = img(box.getBox());
 
-    redBox.findBox(boxImg, true);
+    redBox.findWalls(boxImg, true);
 
     waitKey(5);
 

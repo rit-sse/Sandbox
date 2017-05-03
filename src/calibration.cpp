@@ -31,7 +31,7 @@ void Box::findBox(Mat img, bool showImg) {
   cvtColor(bgr, hsv_image, COLOR_BGR2HSV_FULL);
 
   // Calibrate for color
-  inRange(hsv_image, Scalar(20, 50, 75), Scalar(40, 100, 230), dimg);
+  inRange(hsv_image, Scalar(20, 25, 150), Scalar(25, 50, 255), dimg);
   GaussianBlur(dimg, dimg, Size(9, 9), 2, 2);
 
   // imshow("dank", dimg);
@@ -64,27 +64,14 @@ Rect Box::getBox() {
   return bounding_rect;
 }
 
-int Box::getLeft() {
-  return bounding_rect.x;
+RedBox::RedBox() {
+  namedWindow("redBox", WINDOW_NORMAL);
+  box = Mat::zeros(cvSize(1920, 1080), CV_8UC3);
 }
-
-int Box::getRight() {
-  return bounding_rect.x + bounding_rect.width;
-}
-
-int Box::getTop() {
-  return bounding_rect.y;
-}
-
-int Box::getBottom() {
-  return bounding_rect.y + bounding_rect.height;
-}
-
-RedBox::RedBox() {}
 
 void RedBox::findBox(Mat img, bool showImg) {
   Mat hsv_image, bgr, R, G, B;
-  Mat lower_red_hue_range, upper_red_hue_range, red_hue_image;
+  Mat white_range;
 
   // Image comes in as BGRA
   extractChannel(img, B, 0);
@@ -104,16 +91,15 @@ void RedBox::findBox(Mat img, bool showImg) {
   cvtColor(bgr, hsv_image, COLOR_BGR2HSV);
 
   // Look for both ranges of red
-  inRange(hsv_image, Scalar(0, 100, 100), Scalar(10, 255, 255), lower_red_hue_range);
-  inRange(hsv_image, Scalar(160, 100, 100), Scalar(179, 255, 255), upper_red_hue_range);
+  inRange(hsv_image, Scalar(0, 0, 200), Scalar(180, 255, 255), white_range);
 
   // Combind and blur
-  addWeighted(lower_red_hue_range, 1.0, upper_red_hue_range, 1.0, 0.0, red_hue_image);
-  GaussianBlur(red_hue_image, red_hue_image, Size(9, 9), 2, 2);
+  // addWeighted(lower_red_hue_range, 1.0, upper_red_hue_range, 1.0, 0.0, red_hue_image);
+  GaussianBlur(white_range, white_range, Size(9, 9), 2, 2);
 
   // Find all the contours
   vector<vector<Point> > contours;
-  findContours(red_hue_image, contours, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
+  findContours(white_range, contours, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
 
   int largest_contour_index = 0;
   double largest_area = 0;
@@ -128,25 +114,60 @@ void RedBox::findBox(Mat img, bool showImg) {
     }
   }
 
+  printf("L: %d R: %d T: %d B: %d\n",
+      getLeft(bounding_rect),
+      getRight(bounding_rect),
+      getTop(bounding_rect),
+      getBottom(bounding_rect));
+
   if (showImg) {
     drawContours(bgr, contours, -1, Scalar(255, 0, 0), 5);
     rectangle(bgr, bounding_rect, Scalar(0, 255, 0), 2, 8, 0);
-    imshow("redBox", bgr);
+    imshow("redBoxFinder", bgr);
   }
 }
 
-int RedBox::getLeft() {
+void RedBox::draw() {
+  rectangle(box, Point(lWall, tWall), Point(rWall, bWall), Scalar(255, 255, 255), CV_FILLED);
+  imshow("redBox", box);
+}
+
+void RedBox::drawRedSquare(int size) {
+  // rectangle(box, Point(0, 0), Point(1920, 1080), Scalar(255, 255, 255), CV_FILLED);
+
+  lWall = 960 - size;
+  tWall = 540 - size;
+  rWall = 960 + (size - 1); 
+  bWall = 540 + (size - 1);
+
+  draw();
+}
+
+bool RedBox::findWalls(Mat img, bool showImg) {
+  if (true) lWall--;
+  if (true) tWall--;
+  if (true) rWall++;
+  if (true) bWall++;
+
+  draw();
+
+  findBox(img, showImg);
+
+  return false;
+}
+
+int getLeft(Rect bounding_rect) {
   return bounding_rect.x;
 }
 
-int RedBox::getRight() {
+int getRight(Rect bounding_rect) {
   return bounding_rect.x + bounding_rect.width;
 }
 
-int RedBox::getTop() {
+int getTop(Rect bounding_rect) {
   return bounding_rect.y;
 }
 
-int RedBox::getBottom() {
+int getBottom(Rect bounding_rect) {
   return bounding_rect.y + bounding_rect.height;
 }
