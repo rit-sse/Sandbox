@@ -1,7 +1,7 @@
 # Setup
 - `git clone https://github.com/OpenKinect/libfreenect2.git'
 - `cd libfreenect2`
-- Max and linux follow guide on github
+- Mac and linux follow guide on github
 - `cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local/`
 - `make && sudo make install`
 
